@@ -1,0 +1,32 @@
+function draw_circles
+figure('WindowButtonDownFcn',@wbdcb)
+ah = axes('SortMethod','childorder');
+circles = [rectangle('Position', [0 0 0 0], 'Curvature', 1), ...
+    rectangle('Position', [0 0 0 0], 'Curvature', 1)];
+axis ([1 100 1 100])
+axis equal
+   function wbdcb(src,evnt)
+      if strcmp(get(src,'SelectionType'),'normal')       
+         [x,y] = disp_point(ah);
+         set(src,'WindowButtonMotionFcn',@wbmcb)
+      elseif strcmp(get(src,'SelectionType'),'alt')
+         set(src,'WindowButtonMotionFcn','')
+         [x,y] = disp_point(ah);
+         %text(x,y,str,'VerticalAlignment','bottom');drawnow
+      end
+      function wbmcb(src,evnt)
+         [xn,yn] = disp_point(ah);
+         point1 = [x,y];
+         point2 = [xn,yn];
+         d=norm(point1-point2);%the distance between two points.
+         center = (point1+point2)/2;
+         set(circles, 'Position', [center-d/2, d, d]);
+            axis ([0 1 0 1]);
+      end  
+   end
+   function [x,y] = disp_point(ah)
+      cp = get(ah,'CurrentPoint');  
+      x = cp(1,1);y = cp(1,2);
+      %str = ['(',num2str(x,'%0.3g'),', ',num2str(y,'%0.3g'),')'];    
+   end
+end
