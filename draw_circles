@@ -1,32 +1,50 @@
 function draw_circles
-figure('WindowButtonDownFcn',@wbdcb)
+figure('WindowButtonDownFcn',@wbdcb,'WindowButtonMotionFcn',@wbmcb,...
+    'WindowButtonUpFcn',@done);
 ah = axes('SortMethod','childorder');
 circles = [rectangle('Position', [0 0 0 0], 'Curvature', 1), ...
-    rectangle('Position', [0 0 0 0], 'Curvature', 1)];
-axis ([1 100 1 100])
-axis equal
-   function wbdcb(src,evnt)
-      if strcmp(get(src,'SelectionType'),'normal')       
-         [x,y] = disp_point(ah);
-         set(src,'WindowButtonMotionFcn',@wbmcb)
-      elseif strcmp(get(src,'SelectionType'),'alt')
-         set(src,'WindowButtonMotionFcn','')
-         [x,y] = disp_point(ah);
-         %text(x,y,str,'VerticalAlignment','bottom');drawnow
-      end
-      function wbmcb(src,evnt)
-         [xn,yn] = disp_point(ah);
+    rectangle('Position', [0 0 0 0], 'Curvature', 1)];%Creat two circles in the figure.
+axis equal;
+axis ([0 1 0 1]);
+
+circle_count = 1;
+running = 0;%Makesure nothing happens before clicking the left button.
+point1=[0,0];%Global Variablies
+point2=[0,0];
+   function wbdcb(src,~)%Use '~' to substitute variables that won't be used.
+      if strcmp(get(src,'SelectionType'),'normal')
+         running = 1;%Start after clicking the left mouse button.
+         [x,y] = get_point(ah);
          point1 = [x,y];
-         point2 = [xn,yn];
-         d=norm(point1-point2);%the distance between two points.
-         center = (point1+point2)/2;
-         set(circles, 'Position', [center-d/2, d, d]);
-            axis ([0 1 0 1]);
-      end  
+         if circle_count == 1%Check the number of circles when click the left button.
+             oldcircles = findobj('Type', 'Line', ...
+                    '-or', 'Type', 'Transform', ...
+                    '-or', 'Type', 'Text');
+                delete(oldcircles);
+                set(circles, 'Position', [0 0 0 0]);
+         end
+      end
    end
-   function [x,y] = disp_point(ah)
+  function wbmcb(~,~)
+      if running
+         [xn,yn] = get_point(ah);
+         point2 = [xn,yn];
+         d = norm(point1-point2);%the distance between two points.
+         center = (point1+point2)/2;
+         set(circles(circle_count), 'Position', [center-d/2, d, d]);
+         axis ([0 1 0 1]);
+      end
+  end
+       function done(~,~)
+           running = 0;
+           circle_count = circle_count + 1;
+           if circle_count > 2
+               circle_count = 1;
+               
+       end
+   end
+   function [x,y] = get_point(ah)
       cp = get(ah,'CurrentPoint');  
-      x = cp(1,1);y = cp(1,2);
-      %str = ['(',num2str(x,'%0.3g'),', ',num2str(y,'%0.3g'),')'];    
+      x = cp(1,1);y = cp(1,2); 
    end
 end
