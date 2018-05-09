@@ -17,11 +17,7 @@ point2=[0,0];
          [x,y] = get_point(ah);
          point1 = [x,y];
          if circle_count == 1%Check the number of circles when click the left button.
-             oldcircles = findobj('Type', 'Line', ...
-                    '-or', 'Type', 'Transform', ...
-                    '-or', 'Type', 'Text');
-                delete(oldcircles);
-                set(circles, 'Position', [0 0 0 0]);
+            set(circles, 'Position', [0 0 0 0]);%Clear old circles.
          end
       end
    end
