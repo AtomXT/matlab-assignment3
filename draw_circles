@@ -11,6 +11,7 @@ circle_count = 1;
 running = 0;%Makesure nothing happens before clicking the left button.
 point1=[0,0];%Global Variablies
 point2=[0,0];
+circle(circle_count,:)=[0,0,0,0];
    function wbdcb(src,~)%Use '~' to substitute variables that won't be used.
       if strcmp(get(src,'SelectionType'),'normal')
          running = 1;%Start after clicking the left mouse button.
@@ -32,15 +33,36 @@ point2=[0,0];
       end
   end
        function done(~,~)
-           running = 0;
+           running = 0;%Close the function after releasing the left mouse button.
+           circle(circle_count,:)=[point1,point2];
            circle_count = circle_count + 1;
            if circle_count > 2
                circle_count = 1;
-               
+               drawCommonTangent(circle(1,:),circle(2,:));%Draw the common tangent of two cirlces.
+               axis([0 1 0 1]);
        end
    end
    function [x,y] = get_point(ah)
       cp = get(ah,'CurrentPoint');  
       x = cp(1,1);y = cp(1,2); 
    end
+    function drawCommonTangent(circle1,circle2)
+        center1 = [(circle1(1)+circle1(3))/2,(circle1(2)+circle1(4))/2];
+        center2 = [(circle2(1)+circle2(3))/2,(circle2(2)+circle2(4))/2];
+        r1 = norm(circle1(1:2)-circle1(3:4))/2;
+        r2 = norm(circle2(1:2)-circle2(3:4))/2;%The center and radius of two circles.
+        CenterDistance = norm(center1-center2);%The distance of two centers.
+        if CenterDistance > r1+r2
+            Theta = asin((r1+r2)/CenterDistance);%The angle between the two center lines and the common tangent
+            O = [r2/(r1-r2)*(center2(1)-center1(1)) + center2(1),...
+                r2/(r1-r2)*(center2(2)-center1(2)) +center2(2)];%The intersection.
+            h = hgtransform;
+            ct = line([center1(1),center2(1)],[center1(2),center2(2)],...
+                'Parent',h);
+            P = makehgtform('translate',[-O(1) -O(2) 0]);
+            R = makehgtform('zrotate',Theta);
+            B = makehgtform('translate',[O(1) O(2) 0]);
+            set(h,'Matrix',B*R*P);
+        end
+    end
 end
