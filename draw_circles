@@ -19,6 +19,7 @@ circle(circle_count,:)=[0,0,0,0];
          point1 = [x,y];
          if circle_count == 1%Check the number of circles when click the left button.
             set(circles, 'Position', [0 0 0 0]);%Clear old circles.
+            delete(findobj('LineStyle','--'));%Clear old common tangents.
          end
       end
    end
@@ -54,15 +55,31 @@ circle(circle_count,:)=[0,0,0,0];
         CenterDistance = norm(center1-center2);%The distance of two centers.
         if CenterDistance > r1+r2
             Theta = asin((r1+r2)/CenterDistance);%The angle between the two center lines and the common tangent
+            Theta1 = asin(abs(r1-r2)/CenterDistance);
             O = [r2/(r1-r2)*(center2(1)-center1(1)) + center2(1),...
                 r2/(r1-r2)*(center2(2)-center1(2)) +center2(2)];%The intersection.
             h = hgtransform;
+            h1 = hgtransform;
+            h2 = hgtransform;
+            h3 = hgtransform;
             ct = line([center1(1),center2(1)],[center1(2),center2(2)],...
-                'Parent',h);
+                'Parent',h,'LineStyle','--');
+            ct1 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+                'Parent',h1,'LineStyle','--');
+            ct2 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+                'Parent',h2,'LineStyle','--');
+            ct3 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+                'Parent',h3,'LineStyle','--');
             P = makehgtform('translate',[-O(1) -O(2) 0]);
             R = makehgtform('zrotate',Theta);
+            R1 = makehgtform('zrotate',-Theta);
+            R2 = makehgtform('zrotate',Theta1);
+            R3 = makehgtform('zrotate',-Theta1);
             B = makehgtform('translate',[O(1) O(2) 0]);
             set(h,'Matrix',B*R*P);
+            set(h1,'Matrix',B*R1*P);
+            set(h2,'Matrix',B*R2*P);
+            set(h3,'Matrix',B*R3*P);
         end
     end
 end
