@@ -8,6 +8,7 @@ axis equal;
 axis ([0 1 0 1]);
 
 circle_count = 1;
+error = 0.001;%Use when judging two circles tangent.
 running = 0;%Makesure nothing happens before clicking the left button.
 point1=[0,0];%Global Variablies
 point2=[0,0];
@@ -53,33 +54,64 @@ circle(circle_count,:)=[0,0,0,0];
         r1 = norm(circle1(1:2)-circle1(3:4))/2;
         r2 = norm(circle2(1:2)-circle2(3:4))/2;%The center and radius of two circles.
         CenterDistance = norm(center1-center2);%The distance of two centers.
-        if CenterDistance > r1+r2
-            Theta = asin((r1+r2)/CenterDistance);%The angle between the two center lines and the common tangent
-            Theta1 = asin(abs(r1-r2)/CenterDistance);
-            O = [r2/(r1-r2)*(center2(1)-center1(1)) + center2(1),...
-                r2/(r1-r2)*(center2(2)-center1(2)) +center2(2)];%The intersection.
-            h = hgtransform;
-            h1 = hgtransform;
-            h2 = hgtransform;
-            h3 = hgtransform;
-            ct = line([center1(1),center2(1)],[center1(2),center2(2)],...
-                'Parent',h,'LineStyle','--');
-            ct1 = line([center1(1),center2(1)],[center1(2),center2(2)],...
-                'Parent',h1,'LineStyle','--');
-            ct2 = line([center1(1),center2(1)],[center1(2),center2(2)],...
-                'Parent',h2,'LineStyle','--');
-            ct3 = line([center1(1),center2(1)],[center1(2),center2(2)],...
-                'Parent',h3,'LineStyle','--');
-            P = makehgtform('translate',[-O(1) -O(2) 0]);
-            R = makehgtform('zrotate',Theta);
-            R1 = makehgtform('zrotate',-Theta);
-            R2 = makehgtform('zrotate',Theta1);
-            R3 = makehgtform('zrotate',-Theta1);
-            B = makehgtform('translate',[O(1) O(2) 0]);
-            set(h,'Matrix',B*R*P);
-            set(h1,'Matrix',B*R1*P);
-            set(h2,'Matrix',B*R2*P);
-            set(h3,'Matrix',B*R3*P);
+        Theta = asin((r1+r2)/CenterDistance);%The angle between the two center lines and an external common tangent
+        Theta1 = asin((r2-r1)/CenterDistance);%The angle between the two center lines and an internal common tangent
+        O = [(r1/(r1+r2)*(center2(1)-center1(1)) + center1(1)),...
+            (r1/(r1+r2)*(center2(2)-center1(2))+center1(2))];%Intersection of the external common tangent.
+        if r1>=r2;
+            O1 = [(r2/abs(r1-r2)*(center2(1)-center1(1)) + center2(1)),...
+                (r2/abs(r1-r2)*(center2(2)-center1(2)) +center2(2))];%Intersection of the internal common tangent.
+        else
+            O1 = [(r1/abs(r1-r2)*(center1(1)-center2(1)) + center1(1)),...
+                (r1/abs(r1-r2)*(center1(2)-center2(2)) +center1(2))];%Intersection of the internal common tangent.
+        end
+        O3 = [r1*(center2(1)-center1(1))/(r1+r2)+center1(1),...
+            r1*(center2(2)-center1(2))/(r1+r2)+center1(2)];%The tangent point of the two circles.
+        h = hgtransform;
+        h1 = hgtransform;
+        h2 = hgtransform;
+        h3 = hgtransform;
+        h4 = hgtransform;
+        ct = line([center1(1),center2(1)],[center1(2),center2(2)],...
+            'Parent',h,'LineStyle','--');
+        ct1 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+            'Parent',h1,'LineStyle','--');
+        ct2 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+            'Parent',h2,'LineStyle','--');
+        ct3 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+            'Parent',h3,'LineStyle','--');
+        ct4 = line([center1(1),center2(1)],[center1(2),center2(2)],...
+            'Parent',h4,'LineStyle','--');
+        PI = makehgtform('translate',-[O(1) O(2) 0]);
+        PE = makehgtform('translate',-[O1(1) O1(2) 0]);
+        R = makehgtform('zrotate',Theta);
+        R1 = makehgtform('zrotate',-Theta);
+        R2 = makehgtform('zrotate',Theta1);
+        R3 = makehgtform('zrotate',-Theta1);
+        BI = makehgtform('translate',[O(1) O(2) 0]);
+        BE = makehgtform('translate',[O1(1) O1(2) 0]);
+        P = makehgtform('translate',-[O3(1) O3(2) 0]);
+        R4 = makehgtform('zrotate',pi/2);
+        B = makehgtform('translate',[O3(1) O3(2) 0]);
+        PN = makehgtform('translate',-[circle2(1) circle2(2) 0]);
+        BN = makehgtform('translate',[circle2(1) circle2(2) 0]);
+        S = makehgtform('scale',2);
+        if CenterDistance > r1+r2+error
+            set(h,'Matrix',BI*R*PI);
+            set(h1,'Matrix',BI*R1*PI);
+            set(h2,'Matrix',BE*R2*PE);
+            set(h3,'Matrix',BE*R3*PE);
+        elseif r1+r2-error < CenterDistance && CenterDistance <=r1+r2+error
+            set(h2,'Matrix',BE*R2*PE);
+            set(h3,'Matrix',BE*R3*PE);
+            set(h4,'Matrix',B*R4*P);
+        elseif abs(r1-CenterDistance) <= r2-error
+            set(h2,'Matrix',BE*R2*PE);
+            set(h3,'Matrix',BE*R3*PE);
+        elseif r2-error < abs(r1-CenterDistance) && abs(r1-CenterDistance) <= r2+error;
+            set(h4,'Matrix',BN*R4*S*PN);
+        else
+            delete(findobj('LineStyle','--'));%NO tangents. So delete all lines. 
         end
     end
 end
